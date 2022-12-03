@@ -8,8 +8,10 @@
   
   if(isset($_SESSION['user'])){
       $user = $_SESSION['user'];
+	  $initials = strtoupper($user["FirstName"][0]) . " " . strtoupper($user["LastName"][0]);
   }
 ?>
+
 
 <html>
 <head>
@@ -134,13 +136,23 @@
           z-index: 9;
         }
 		
-		.profile-popup {
+		    .profile-popup {
           display: none;
           position: fixed;
           bottom: height-50%;
           right:35%;
-		  align-items: center;
-		  justify-content: center;
+		      align-items: center;
+		      justify-content: center;
+          border: 3px solid #f1f1f1;
+        }
+
+        .mail {
+          display: none;
+          position: fixed;
+          bottom: height-50%;
+          right:35%;
+		      align-items: center;
+		      justify-content: center;
           border: 3px solid #f1f1f1;
         }
 
@@ -177,7 +189,7 @@
           opacity: 0.8;
         }
 		
-		.form-container .btn2 {
+		    .form-container .btn2 {
           background-color: #9370DB;
           color: white;
           padding: 16px 20px;
@@ -186,7 +198,7 @@
           width: 30%;
           margin-bottom:10px;
           opacity: 0.8;
-		  border-radius: 50%;
+		      border-radius: 50%;
         }
 
         /* Add a red background color to the cancel button */
@@ -201,7 +213,7 @@
 		
 		textarea {
 		  background-color: #f1f1f1;
-          width: 100%;
+      width: 100%;
 		  height: 150px;
 		  padding: 12px 20px;
 		  font-size: 16px;
@@ -214,6 +226,40 @@
 		  background-color: #ddd;
 		}
 
+    .table-responsive{
+      width:100%;
+      margin-left: 200px;
+    }
+    table,td{
+      border: 1px solid;
+    }
+    table{
+      border-collapse: collapse;
+      width: 1500px;
+    }
+    .name{
+      width: 300px;
+    }
+    .message{
+      width: 1000px;
+    }
+    .time{
+      width:200px;
+    }
+    
+    .pagination {
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  border: 1px solid;
+  font-size: 12px;
+}
+
   </style>
 </head>
 <body>
@@ -221,7 +267,7 @@
 <!--Top nav bar --> 
 <div id="navlist">
         <a href='logout.php'>Logout</a>
-		<a href="javascript:openForm2()">"<?php echo strtoupper($user['First Name'][0]); echo " "; echo strtoupper($user['Last Name'][0]);?>"</a>
+		<a href="javascript:openForm2()"> "<?php echo $initials; ?>" </a>
         <div class="search">
             <form action="#">
                 <input type="text"
@@ -238,13 +284,63 @@
 
 <!--sidebar --> 
 <div class="sidebar">
-  <a href="employee.php"><img src="EmiratiMail.com-logo1d7.jpg" alt="Home" style="width:150px;height:70px;"></a>
+  <a href="?inbox=true"><img src="EmiratiMail.com-logo1d7.jpg" alt="Home" style="width:150px;height:70px;"></a>
   <a href="javascript:openForm2()"><?php echo $user['Username'] ?></a>
   <a href="javascript:openForm()">New Mail</a>
-  <a href="#inbox">Inbox</a>
+  <a href="?inbox=true">Inbox</a>
   <a href="#filtered">Filtered Mail</a>
-  <a href="#spam">Spam</a>
-  <a href="#sent">Sent</a>
+  <a href="?spam=true">Spam</a>
+  <a href="?sendcode=true">Sent</a>
+
+
+<!--Sent inbox view -->   
+<?php
+
+if(isset($_GET['sendcode'])){
+  $query= "SELECT * FROM  EmployeeEmails WHERE EmployeeID = '".$user['EmployeeID']."' AND Sender = '".$user['Email']."'"; 
+  $result = mysqli_query($db,$query);
+ 
+     if ($result->num_rows > 0) {
+         while ($row = $result -> fetch_assoc()) { 
+
+        echo "<div class=\"table-responsive\">";
+        echo "<table class=\"table\">";      
+        echo "<tr>";
+        echo "<td class=\"name\"><a href=\"#\">".$row["Receiver"]. "</a></td>";
+        echo "<td class=\"message\"><a href=\"#\">".$row["Subject"]."</a></td>";
+        echo "<td class=\"time\">".$row["Date"]."</td>";
+        echo "</tr>";	
+
+} echo "</table>";
+  echo "</div>";
+}
+}
+?>
+
+
+<!--Inbox view --> 
+<?php
+
+if(isset($_GET['inbox'])){
+  $query= "SELECT * FROM  EmployeeEmails WHERE EmployeeID = '".$user['EmployeeID']."' AND Receiver = '".$user['Email']."'"; 
+  $result = mysqli_query($db,$query);
+ 
+     if ($result->num_rows > 0) {
+         while ($row = $result -> fetch_assoc()) { 
+
+        echo "<div class=\"table-responsive\">";
+        echo "<table class=\"table\">";      
+        echo "<tr>";
+        echo "<td class=\"name\"><a href=\"#\">".$row["Receiver"]. "</a></td>";
+        echo "<td class=\"message\"><a href=\"javascript:openForm3()\")\">".$row["Subject"]."</a></td>";
+        echo "<td class=\"time\">".$row["Date"]."</td>";
+        echo "</tr>";	
+
+} echo "</table>";
+  echo "</div>";
+}
+}
+?>
 
 <!--send email popup box -->  
 <button class="open-button" onclick="openForm()">Send Email</button>
@@ -281,6 +377,18 @@
 </form>
 </div>
 
+
+<!--view message popup box --> 
+<div class="mail" id="mail">
+<form action="" class="form-container">
+  <img src="EmiratiMail.com-logo1d.jpg" style="width:500px;height:70px;"></a>
+	<button type="button" class="btn2"><h1><?php echo strtoupper($user['FirstName'][0]); echo " "; echo strtoupper($user['LastName'][0]);?></h1></button>
+	<h3> Employee ID: <?php echo "" ?></h3>
+
+	<button type="button" class="btn cancel" onclick="closeForm3()">Close</button>
+</form>
+</div>
+
 <script>
 function openForm() {
   document.getElementById("myForm").style.display = "block";
@@ -297,6 +405,16 @@ function openForm2() {
 function closeForm2() {
   document.getElementById("profilePopup").style.display = "none";
 }
+
+function openForm3() {
+  document.getElementById("mail").style.display = "block";
+}
+
+function closeForm3() {
+  document.getElementById("mail").style.display = "none";
+}
+
+
 </script>
 
 </div>

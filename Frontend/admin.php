@@ -1,13 +1,14 @@
 <?php
   session_start();
   include 'functions.php';
-  if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+  if(!isset($_SESSION["loggedinAdmin"]) || $_SESSION["loggedinAdmin"] !== true){
       header("location: login.php");
       exit;
   }
   
   if(isset($_SESSION['user'])){
       $user = $_SESSION['user'];
+	  $initials = strtoupper($user["FirstName"][0]) . " " . strtoupper($user["LastName"][0]);
   }
 ?>
 
@@ -243,10 +244,39 @@
 		  background-color: #ddd;
 		}
 
-    table, th, td {
-      border: 1px solid black;
-      border-collapse: collapse;
+    .table-responsive{
+      width:100%;
+      margin-left: 200px;
     }
+    table,td{
+      border: 1px solid;
+    }
+    table{
+      border-collapse: collapse;
+      width: 1500px;
+    }
+    .name{
+      width: 300px;
+    }
+    .message{
+      width: 1000px;
+    }
+    .time{
+      width:200px;
+    }
+    
+    .pagination {
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  border: 1px solid;
+  font-size: 12px;
+}
 
   </style>
 </head>
@@ -255,7 +285,7 @@
 <!--Top nav bar --> 
 <div id="navlist">
         <a href='logout.php'>Logout</a>
-		<a href="javascript:openForm2()">"<?php echo strtoupper($user['First Name'][0]); echo " "; echo strtoupper($user['Last Name'][0]);?>"</a>
+		<a href="javascript:openForm2()">"<?php echo $initials; ?>"</a>
         <div class="search">
             <form action="#">
                 <input type="text"
@@ -276,10 +306,58 @@
   <a href="javascript:openForm2()"><?php echo $user['Username'] ?></a>
   <a href="javascript:openForm3()">Dashboard</a>
   <a href="javascript:openForm()">New Mail</a>
-  <a href="#inbox">Inbox</a>
+  <a href="?inbox=true">Inbox</a>
   <a href="#filtered">Filtered Mail</a>
-  <a href="#spam">Spam</a>
-  <a href="#sent">Sent</a>
+  <a href="?spam=true">Spam</a>
+  <a href="?sendcode=true">Sent</a>
+
+  <!--Sent inbox view -->   
+<?php
+
+if(isset($_GET['sendcode'])){
+  $query= "SELECT * FROM  EmployeeEmails WHERE EmployeeID = '".$user['EmployeeID']."' AND Sender = '".$user['Email']."'"; 
+  $result = mysqli_query($db,$query);
+ 
+     if ($result->num_rows > 0) {
+         while ($row = $result -> fetch_assoc()) { 
+
+        echo "<div class=\"table-responsive\">";
+        echo "<table class=\"table\">";      
+        echo "<tr>";
+        echo "<td class=\"name\"><a href=\"#\">".$row["Receiver"]. "</a></td>";
+        echo "<td class=\"message\"><a href=\"#\">".$row["Subject"]."</a></td>";
+        echo "<td class=\"time\">".$row["Date"]."</td>";
+        echo "</tr>";	
+
+} echo "</table>";
+  echo "</div>";
+}
+}
+?>
+
+<!--Inbox view --> 
+<?php
+
+if(isset($_GET['inbox'])){
+  $query= "SELECT * FROM  EmployeeEmails WHERE EmployeeID = '".$user['EmployeeID']."' AND Receiver = '".$user['Email']."'"; 
+  $result = mysqli_query($db,$query);
+ 
+     if ($result->num_rows > 0) {
+         while ($row = $result -> fetch_assoc()) { 
+
+        echo "<div class=\"table-responsive\">";
+        echo "<table class=\"table\">";      
+        echo "<tr>";
+        echo "<td class=\"name\"><a href=\"#\">".$row["Receiver"]. "</a></td>";
+        echo "<td class=\"message\"><a href=\"javascript:openForm4(".$row["Subject"].")\">".$row["Subject"]."</a></td>";
+        echo "<td class=\"time\">".$row["Date"]."</td>";
+        echo "</tr>";	
+
+} echo "</table>";
+  echo "</div>";
+}
+}
+?>
 
 <!--send email popup box -->  
 <button class="open-button" onclick="openForm()">Send Email</button>
@@ -308,9 +386,9 @@
 <div class="profile-popup" id="profilePopup">
 <form action="" class="form-container">
     <img src="EmiratiMail.com-logo1d.jpg" style="width:500px;height:70px;"></a>
-	<button type="button" class="btn2"><h1><?php echo strtoupper($user['First Name'][0]); echo " "; echo strtoupper($user['Last Name'][0]);?></h1></button>
+	<button type="button" class="btn2"><h1><?php echo strtoupper($user['FirstName'][0]); echo " "; echo strtoupper($user['LastName'][0]);?></h1></button>
 	<h3> Employee ID: <?php echo $user['EmployeeID'] ?></h3>
-	<h3> Employee Name: "<?php echo strtoupper($user['First Name']); echo " "; echo strtoupper($user['Last Name']);  ?>"</h3>
+	<h3> Employee Name: "<?php echo strtoupper($user['FirstName']); echo " "; echo strtoupper($user['LastName']);  ?>"</h3>
 	<h3> Employee Email: <?php echo $user['Email'] ?></h3>
 	<button type="button" class="btn cancel" onclick="closeForm2()">Close</button>
 </form>
@@ -352,37 +430,37 @@
    ?>
    <h3>Add/Update</h3>
 	    <div class="txt_field">
-	      <input type="text" name="id" id="id">
+	      <input type="text" name="id" id="id" required>
 	      <label>ID</label>
 	    </div>
 			<div class="txt_field">
-	      <input type="text" name="FName" id="FName">
+	      <input type="text" name="FName" id="FName" required>
 	      <label>First name</label>
 	    </div>
 			<div class="txt_field">
-	      <input type="text" name="LName" id="LName">
+	      <input type="text" name="LName" id="LName" required>
 	      <label>Last name</label>
 	    </div>
 			<div class="txt_field">
-	      <input type="text" name="Username" id="Username">
+	      <input type="text" name="Username" id="Username" required>
 	      <label>Username</label>
 	      </div>
 	      <div class="txt_field">
-	      <input type="text" name="Email" id="Email">
+	      <input type="text" name="Email" id="Email" required>
 	      <label>Email</label>
 	    </div>   
 	    <div class="txt_field">
-	      <input type="password" name="Password" id="Password" onkeyup='check();'>
+	      <input type="password" name="Password" id="Password" onkeyup='check();' required>
 	      <label>Password</label>
 	    </div>
 			<div class="txt_field">
-	      <input type="password" name="confirm_Password" id="confirm_Password" onkeyup='check();'>
+	      <input type="password" name="confirm_Password" id="confirm_Password" onkeyup='check();' required>
 	      <label>Re-enter password.</label>
 	    </div>
       <br>
 
     <input type="submit" value ="Delete" name="delete">
-    <input type="submit" value="Add" name="register">
+    <input type="submit" value="Add" name="addUser">
     <input type="submit" value="Update" name="update">
 	  <button type="button" class="btn cancel" onclick="closeForm3()">Close</button>
 </form>
